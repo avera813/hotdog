@@ -41,7 +41,70 @@ let testcases = [
  * file for each testcase.
  */
 function Competition(testcase) {
-    return [];
+    // get string list of competitors
+    let competitors = Object.keys(testcase.competitors);
+
+    // declare array for new event objects to be returned
+    let results = [];
+
+    // iterate through each competitor
+    for (let competitor of competitors) {
+        // declare 0 for dogs eaten and elapsed time when starting
+        let dogsEaten = 0;
+        let elapsedTime = 0;
+
+        // peform this loop while the elapsedTime is less than or equal to duration of test case
+        do {
+            // calculate when the next dog will be fully eaten
+            let nextDog = testcase.competitors[competitor](dogsEaten);
+
+            // check that the duration to eat the next dog and current elapsed time is less than or equal to test case duration to add a full dog
+            if ((elapsedTime + nextDog) <= testcase.duration) {
+                elapsedTime += nextDog;
+                dogsEaten++;
+            } else {
+                // in the event that the next dog will not be eaten by the test case duration, add the percentage difference
+                let timeDiff = testcase.duration - elapsedTime;
+
+                elapsedTime = testcase.duration;
+                dogsEaten += timeDiff / nextDog;
+            }
+
+            // create generic event object to be returned
+            let eatEvent = {
+                elapsedTime: parseDecimalNumber(elapsedTime, 3),
+                name: competitor,
+                totalHotDogsEaten: parseDecimalNumber(dogsEaten, 3)
+            };
+
+            // add event to results
+            results.push(eatEvent);
+
+            // when elapsed time is equal to the test case (last dog or difference), break the loop
+            if (elapsedTime === testcase.duration) {
+                break;
+            }
+        } while (elapsedTime <= testcase.duration);
+    }
+
+    // sort results by elapsed time
+    results.sort(function (a, b) {
+        return a.elapsedTime < b.elapsedTime ? -1 : 1;
+    });
+
+    return results;
+}
+
+/* This function removes trailing zeros  */
+function parseDecimalNumber(number, maxDecimalPlaces) {
+    // Round number to fixed position
+    let roundedNumberString = Number(number).toFixed(maxDecimalPlaces);
+
+    // Remove subsequent trailing zeros
+    roundedNumberString = roundedNumberString.replace(/\.(0|\d+)(0+)$/g, '.$1');
+
+    // Return number format of the string
+    return Number(roundedNumberString);
 }
 
 /*
